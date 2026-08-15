@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRIS Dynamic Generator</title>
+    <script src="jsQR.min.js?v1786819702"></script>
+    <style>
+      :root {
+        --primary: #1769ff;
+        --primary-dark: #0f56d6;
+        --primary-light: #edf4ff;
+        --success: #16a34a;
+        --success-bg: #ecfdf3;
+        --danger: #dc2626;
+        --danger-bg: #fef2f2;
+        --warning: #d97706;
+        --warning-bg: #fff7ed;
+        --text: #172033;
+        --muted: #6b7280;
+        --border: #e3e9f2;
+        --background: #f5f8fc;
+        --white: #ffffff;
+        --shadow:
+          0 12px 35px rgba(27, 62, 110, .08);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Arial,
+          sans-serif;
+        color: var(--text);
+        background: var(--background);
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .page {
+        min-height: 100vh;
+      }
+
+      /* =========================================================
+           HEADER
+        ========================================================= */
+      .header {
+        height: 72px;
+        background: var(--white);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .header-inner {
+        width: min(1180px, calc(100% - 32px));
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        font-weight: 800;
+        background:
+          linear-gradient(135deg,
+            #1769ff,
+            #4f8cff);
+        box-shadow:
+          0 8px 20px rgba(23, 105, 255, .22);
+      }
+
+      .brand-name {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -.2px;
+      }
+
+      .brand-subtitle {
+        color: var(--muted);
+        font-size: 11px;
+        margin-top: 2px;
+      }
+
+      .security-badge {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: #15803d;
+        background: var(--success-bg);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      /* =========================================================
+           MAIN
+        ========================================================= */
+      .main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 42px 0 70px;
+      }
+
+      .hero {
+        margin-bottom: 28px;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(25px, 4vw, 36px);
+        line-height: 1.15;
+        letter-spacing: -.8px;
+      }
+
+      .hero p {
+        margin: 10px 0 0;
+        max-width: 680px;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      /* =========================================================
+           CAUTION / WARNING
+        ========================================================= */
+      .caution-banner {
+        margin: 20px 0 28px;
+        padding: 16px 20px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        border: 1px solid #fed7aa;
+        display: flex;
+        gap: 12px;
+        animation: slideUp .4s ease;
+      }
+
+      .caution-icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+
+      .caution-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .caution-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #92400e;
+        margin-bottom: 6px;
+        letter-spacing: .3px;
+      }
+
+      .caution-text {
+        font-size: 12px;
+        line-height: 1.6;
+        color: #78350f;
+      }
+
+      .caution-text strong {
+        color: #92400e;
+        font-weight: 800;
+      }
+
+      .caution-text br {
+        margin-bottom: 4px;
+        content: "";
+        display: block;
+      }
+
+      @media (max-width: 560px) {
+        .caution-banner {
+          padding: 14px 16px;
+          gap: 10px;
+        }
+        .caution-icon {
+          width: 32px;
+          height: 32px;
+          font-size: 16px;
+        }
+        .caution-title {
+          font-size: 12px;
+        }
+        .caution-text {
+          font-size: 11px;
+        }
+      }
+
+      /* =========================================================
+           GRID
+        ========================================================= */
+      .grid {
+        display: grid;
+        grid-template-columns:
+          minmax(0, 1.4fr) minmax(320px, .8fr);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .card-header {
+        padding: 22px 24px 0;
+      }
+
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .step {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: var(--primary-light);
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .card-description {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+        margin:
+          8px 0 0 41px;
+      }
+
+      .card-body {
+        padding: 22px 24px 24px;
+      }
+
+      /* =========================================================
+           UPLOAD
+        ========================================================= */
+      .upload-zone {
+        border: 2px dashed #cbd8ec;
+        border-radius: 17px;
+        background:
+          linear-gradient(180deg,
+            #fafdff,
+            #f5f9ff);
+        padding: 32px 20px;
+        text-align: center;
+        transition:
+          border-color .2s,
+          background .2s,
+          transform .2s;
+        cursor: pointer;
+      }
+
+      .upload-zone:hover,
+      .upload-zone.dragover {
+        border-color: var(--primary);
+        background: #eef5ff;
+        transform: translateY(-1px);
+      }
+
+      .upload-icon {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 13px;
+        border-radius: 17px;
+        background: var(--primary-light);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 25px;
+        font-weight: 800;
+      }
+
+      .upload-title {
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .upload-subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .private-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 14px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        color: #15803d;
+        background: var(--success-bg);
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      /* =========================================================
+           DIVIDER
+        ========================================================= */
+      .or-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 22px 0;
+        color: #9ca3af;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .or-divider::before,
+      .or-divider::after {
+        content: "";
+        height: 1px;
+        background: var(--border);
+        flex: 1;
+      }
+
+      /* =========================================================
+           FORM
+        ========================================================= */
+      .field {
+        margin-bottom: 17px;
+      }
+
+      .field:last-child {
+        margin-bottom: 0;
+      }
+
+      .label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 7px;
+      }
+
+      label {
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .limit {
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      textarea,
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fbfcfe;
+        color: var(--text);
+        outline: none;
+        transition:
+          border-color .2s,
+          box-shadow .2s,
+          background .2s;
+      }
+
+      textarea {
+        min-height: 125px;
+        resize: vertical;
+        padding: 13px;
+        font-family:
+          "SFMono-Regular",
+          Consolas,
+          monospace;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      input,
+      select {
+        height: 45px;
+        padding: 0 13px;
+        font-size: 13px;
+      }
+
+      textarea:focus,
+      input:focus,
+      select:focus {
+        border-color: var(--primary);
+        background: white;
+        box-shadow:
+          0 0 0 3px rgba(23, 105, 255, .09);
+      }
+
+      .help {
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.5;
+        margin-top: 6px;
+      }
+
+      .char-counter {
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      /* =========================================================
+           BUTTON
+        ========================================================= */
+      .button {
+        border: 0;
+        min-height: 45px;
+        border-radius: 12px;
+        padding: 0 17px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        transition:
+          transform .15s,
+          box-shadow .15s,
+          background .15s;
+      }
+
+      .button:active {
+        transform: scale(.98);
+      }
+
+      .button-primary {
+        width: 100%;
+        color: white;
+        background:
+          linear-gradient(135deg,
+            var(--primary),
+            #4387ff);
+        box-shadow:
+          0 9px 20px rgba(23, 105, 255, .18);
+      }
+
+      .button-primary:hover {
+        background:
+          linear-gradient(135deg,
+            var(--primary-dark),
+            var(--primary));
+      }
+
+      .button-secondary {
+        color: var(--text);
+        background: #f1f4f8;
+        border: 1px solid var(--border);
+      }
+
+      .button-secondary:hover {
+        background: #e9eef5;
+      }
+
+      .button-success {
+        color: white;
+        background: var(--success);
+      }
+
+      .button-danger {
+        color: #b91c1c;
+        background: var(--danger-bg);
+        border: 1px solid #fecaca;
+      }
+
+      .button-row {
+        display: flex;
+        gap: 9px;
+      }
+
+      /* =========================================================
+           SETTINGS
+        ========================================================= */
+      #settingsCard {
+        display: none;
+      }
+
+      .settings-visible {
+        animation: slideUp .3s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+      }
+
+      .fee-grid {
+        display: grid;
+        grid-template-columns:
+          1fr 1fr;
+        gap: 13px;
+      }
+
+      /* =========================================================
+           STATUS
+        ========================================================= */
+      .status {
+        display: none;
+        margin-top: 13px;
+        padding: 11px 13px;
+        border-radius: 11px;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      .status.show {
+        display: block;
+      }
+
+      .status.success {
+        color: #166534;
+        background: var(--success-bg);
+        border: 1px solid #bbf7d0;
+      }
+
+      .status.error {
+        color: #991b1b;
+        background: var(--danger-bg);
+        border: 1px solid #fecaca;
+      }
+
+      .status.warning {
+        color: #9a3412;
+        background: var(--warning-bg);
+        border: 1px solid #fed7aa;
+      }
+
+      /* =========================================================
+           RESULT / PREVIEW
+        ========================================================= */
+      .preview-card {
+        position: sticky;
+        top: 94px;
+      }
+
+      .preview-body {
+        padding: 24px;
+      }
+
+      .qr-container {
+        min-height: 290px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border-radius: 17px;
+        background:
+          linear-gradient(145deg,
+            #f7faff,
+            #eef4fc);
+        border: 1px solid var(--border);
+        text-align: center;
+      }
+
+      .qr-placeholder-icon {
+        width: 65px;
+        height: 65px;
+        border-radius: 19px;
+        background: #e8f0ff;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
+
+      .qr-placeholder-title {
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .qr-placeholder-text {
+        margin-top: 5px;
+        max-width: 230px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      #qrImage {
+        display: none;
+        width: 260px;
+        height: 260px;
+        max-width: 100%;
+        object-fit: contain;
+        border-radius: 12px;
+        background: white;
+        padding: 8px;
+      }
+
+      .merchant-summary {
+        display: none;
+        margin-top: 17px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 11px 13px;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+      }
+
+      .summary-row:last-child {
+        border-bottom: 0;
+      }
+
+      .summary-label {
+        color: var(--muted);
+      }
+
+      .summary-value {
+        text-align: right;
+        font-weight: 800;
+        word-break: break-word;
+      }
+
+      .summary-total {
+        background: #f7faff;
+      }
+
+      .summary-total .summary-value {
+        color: var(--primary);
+        font-size: 14px;
+      }
+
+      .result-actions {
+        display: none;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .result-actions .button {
+        flex: 1;
+      }
+
+      /* =========================================================
+           ORIGINAL INFO
+        ========================================================= */
+      .original-info {
+        display: none;
+        margin-top: 15px;
+        padding: 13px;
+        border-radius: 13px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+      }
+
+      .original-title {
+        font-size: 10px;
+        color: var(--muted);
+        font-weight: 800;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+      }
+
+      .original-payload {
+        max-height: 80px;
+        overflow: auto;
+        word-break: break-all;
+        font-family: monospace;
+        font-size: 9px;
+        line-height: 1.5;
+        color: #475569;
+      }
+
+      /* =========================================================
+           LOADING
+        ========================================================= */
+      .loading {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, .45);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* =========================================================
+           FOOTER
+        ========================================================= */
+      .footer {
+        margin-top: 25px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+      @media (max-width: 850px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-card {
+          position: static;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .main {
+          width: min(100% - 20px,
+              1180px);
+          padding-top: 27px;
+        }
+
+        .header-inner {
+          width: calc(100% - 20px);
+        }
+
+        .security-badge {
+          display: none;
+        }
+
+        .card-header,
+        .card-body,
+        .preview-body {
+          padding-left: 17px;
+          padding-right: 17px;
+        }
+
+        .two-col,
+        .fee-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .upload-zone {
+          padding: 27px 15px;
+        }
+
+        .button-row {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- =========================================================
+         HEADER
+    ========================================================= -->
+      <header class="header">
+        <div class="header-inner">
+          <div class="brand">
+            <div class="brand-logo"> Q </div>
+            <div>
+              <div class="brand-name"> QRIS Dynamic </div>
+              <div class="brand-subtitle"> QRIS Generator </div>
+            </div>
+          </div>
+          <div class="security-badge">
+            <span>Full dibuat dengan AI</span>
+          </div>
+        </div>
+      </header>
+      <!-- =========================================================
+         MAIN
+    ========================================================= -->
+      <main class="main">
+        <section class="hero">
+          <h1> Buat QRIS Dinamis </h1>
+          <p> Masukkan QRIS original kamu, lalu atur merchant, kota, nominal pembayaran dan biaya layanan. Foto QRIS dapat dipindai langsung dari perangkat tanpa di-upload. </p>
+        </section>
+        <!-- =========================================================
+             CAUTION BANNER
+        ========================================================= -->
+        <div class="caution-banner" role="alert">
+          <div class="caution-icon" aria-hidden="true"> &#9888; </div>
+          <div class="caution-content">
+            <div class="caution-title"> CAUTION / PERINGATAN </div>
+            <div class="caution-text">
+              Mohon <strong>jangan menyalahgunakan</strong> informasi atau fasilitas ini untuk melakukan penipuan dalam bentuk apa pun.<br>
+              Dilarang keras menggunakan <strong>nama organisasi, brand, lembaga, donasi, masjid, gereja, maupun pihak lainnya</strong> tanpa izin atau untuk tujuan yang merugikan orang lain.<br>
+              Gunakan dengan bijak dan bertanggung jawab. <strong>Segala bentuk penyalahgunaan menjadi tanggung jawab pihak yang melakukannya.</strong>
+            </div>
+          </div>
+        </div>
+        <div class="grid">
+          <!-- =================================================
+                 LEFT
+            ================================================== -->
+          <div>
+            <!-- STEP 1 -->
+            <section class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <div class="step"> 01 </div>
+                  <span> QRIS Original </span>
+                </div>
+                <div class="card-description"> Masukkan payload QRIS atau scan foto QRIS langsung dari perangkat kamu. </div>
+              </div>
+              <div class="card-body">
+                <!-- UPLOAD -->
+                <div class="upload-zone" id="qrUpload">
+                  <div class="upload-icon"> ◈ </div>
+                  <div class="upload-title"> Drag foto QRIS ke sini </div>
+                  <div class="upload-subtitle"> atau klik untuk memilih foto dari perangkat </div>
+                  <input type="file" id="qrFile" accept="image/png,image/jpeg,image/webp" hidden>
+                  <div class="private-badge"> 🔒 Diproses langsung di browser </div>
+                </div>
+                <div id="decodeStatus" class="status"></div>
+                <!-- DIVIDER -->
+                <div class="or-divider"> ATAU MASUKKAN PAYLOAD MANUAL </div>
+                <!-- PAYLOAD -->
+                <div class="field">
+                  <div class="label-row">
+                    <label for="qrisPayload"> QRIS Payload </label>
+                    <span class="char-counter" id="payloadCounter"> 0 karakter </span>
+                  </div>
+                  <textarea id="qrisPayload" placeholder="Contoh: 00020101021226..." spellcheck="false"></textarea>
+                  <div class="help"> Payload QRIS akan diproses setelah tombol Load QRIS ditekan. </div>
+                </div>
+                <button type="button" class="button button-primary" id="loadQrisButton">
+                  <span id="loadButtonText"> Load QRIS </span>
+                </button>
+                <div id="loadStatus" class="status"></div>
+              </div>
+            </section>
+            <!-- =================================================
+                     STEP 2
+                ================================================== -->
+            <section class="card" id="settingsCard" style="margin-top:22px;">
+              <div class="card-header">
+                <div class="card-title">
+                  <div class="step"> 02 </div>
+                  <span> Pengaturan QRIS </span>
+                </div>
+                <div class="card-description"> Atur data merchant dan nominal pembayaran. </div>
+              </div>
+              <div class="card-body">
+                <!-- MERCHANT + CITY -->
+                <div class="two-col">
+                  <div class="field">
+                    <div class="label-row">
+                      <label for="merchantName"> Merchant Name </label>
+                      <span class="char-counter" id="merchantCounter"> 0 / 25 </span>
+                    </div>
+                    <input type="text" id="merchantName" maxlength="25" autocomplete="off" placeholder="Nama merchant">
+                    <div class="help"> Maksimal 25 karakter sesuai kapasitas field QRIS. </div>
+                  </div>
+                  <div class="field">
+                    <div class="label-row">
+                      <label for="cityName"> City Name </label>
+                      <span class="char-counter" id="cityCounter"> 0 / 15 </span>
+                    </div>
+                    <input type="text" id="cityName" maxlength="15" autocomplete="off" placeholder="Nama kota">
+                    <div class="help"> Maksimal 15 karakter. </div>
+                  </div>
+                </div>
+                <!-- POSTAL CODE -->
+                <div class="field">
+                  <div class="label-row">
+                    <label for="postalCode"> Postal Code </label>
+                    <span class="char-counter" id="postalCounter"> 0 / 10 </span>
+                  </div>
+                  <input type="text" id="postalCode" maxlength="10" inputmode="numeric" autocomplete="off" placeholder="Kode pos">
+                  <div class="help"> Opsional. Hanya angka, maksimal 10 digit. </div>
+                </div>
+                <!-- AMOUNT -->
+                <div class="field">
+                  <div class="label-row">
+                    <label for="amount"> Nominal Pembayaran </label>
+                    <span class="limit"> Opsional · Maks. Rp10.000.000 </span>
+                  </div>
+                  <input type="number" id="amount" min="0" max="10000000" step="1" inputmode="numeric" placeholder="Kosongkan jika nominal tidak ditentukan">
+                  <div class="help"> Kosongkan untuk membuat QRIS tanpa nominal tetap. Jika diisi, QRIS akan menjadi dynamic. </div>
+                </div>
+                <!-- FEE -->
+                <div class="field">
+                  <div class="label-row">
+                    <label> Biaya Layanan </label>
+                    <span class="limit"> Opsional </span>
+                  </div>
+                  <div class="fee-grid">
+                    <select id="feeType">
+                      <option value="none"> Tanpa biaya </option>
+                      <option value="fix"> Nominal tetap </option>
+                      <option value="percent"> Persentase </option>
+                    </select>
+                    <input type="number" id="feeValue" min="0" step="0.01" inputmode="decimal" placeholder="Nilai biaya" disabled>
+                  </div>
+                </div>
+                <button type="button" class="button button-primary" id="generateButton">
+                  <span id="generateButtonText"> Generate QRIS </span>
+                </button>
+                <div id="generateStatus" class="status"></div>
+              </div>
+            </section>
+          </div>
+          <!-- =================================================
+                 RIGHT / PREVIEW
+            ================================================== -->
+          <aside class="card preview-card">
+            <div class="card-header">
+              <div class="card-title">
+                <div class="step"> 03 </div>
+                <span> Preview </span>
+              </div>
+              <div class="card-description"> QRIS hasil generate akan tampil di sini. </div>
+            </div>
+            <div class="preview-body">
+              <div class="qr-container">
+                <div id="qrPlaceholder">
+                  <!--<div class="qr-placeholder-icon"></div>-->
+                  <div class="qr-placeholder-title"> Belum ada QRIS </div>
+                  <div class="qr-placeholder-text"> Load QRIS original terlebih dahulu, lalu lakukan generate. </div>
+                </div>
+                <img id="qrImage" alt="QRIS Generated">
+              </div>
+              <!-- SUMMARY -->
+              <div class="merchant-summary" id="merchantSummary">
+                <div class="summary-row">
+                  <span class="summary-label"> Merchant </span>
+                  <span class="summary-value" id="summaryMerchant"> - </span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label"> Kota </span>
+                  <span class="summary-value" id="summaryCity"> - </span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label"> Kode Pos </span>
+                  <span class="summary-value" id="summaryPostal"> - </span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label"> Nominal </span>
+                  <span class="summary-value" id="summaryAmount"> - </span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label"> Biaya </span>
+                  <span class="summary-value" id="summaryFee"> - </span>
+                </div>
+                <div class="summary-row summary-total">
+                  <span class="summary-label"> Total </span>
+                  <span class="summary-value" id="summaryTotal"> - </span>
+                </div>
+              </div>
+              <!-- ORIGINAL -->
+              <div class="original-info" id="originalInfo">
+                <div class="original-title"> Original Payload </div>
+                <div class="original-payload" id="originalPayload"></div>
+              </div>
+              <!-- ACTIONS -->
+              <div class="result-actions" id="resultActions">
+                <button type="button" class="button button-secondary" id="copyButton"> Copy </button>
+                <button type="button" class="button button-success" id="downloadButton"> Download </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <div class="footer">QRIS Dynamic Generator</div>
+      </main>
+    </div>
+    <script>
+      /*
+|--------------------------------------------------------------------------
+| ELEMENTS
+|--------------------------------------------------------------------------
+*/
+      const qrisPayload = document.getElementById("qrisPayload");
+      const qrUpload = document.getElementById("qrUpload");
+      const qrFile = document.getElementById("qrFile");
+      const decodeStatus = document.getElementById("decodeStatus");
+      const loadStatus = document.getElementById("loadStatus");
+      const generateStatus = document.getElementById("generateStatus");
+      const settingsCard = document.getElementById("settingsCard");
+      const merchantName = document.getElementById("merchantName");
+      const cityName = document.getElementById("cityName");
+      const postalCode = document.getElementById("postalCode");
+      const amount = document.getElementById("amount");
+      const feeType = document.getElementById("feeType");
+      const feeValue = document.getElementById("feeValue");
+      const loadQrisButton = document.getElementById("loadQrisButton");
+      const generateButton = document.getElementById("generateButton");
+      const qrImage = document.getElementById("qrImage");
+      const qrPlaceholder = document.getElementById("qrPlaceholder");
+      const merchantSummary = document.getElementById("merchantSummary");
+      const resultActions = document.getElementById("resultActions");
+      /*
+      |--------------------------------------------------------------------------
+      | CONSTANTS
+      |--------------------------------------------------------------------------
+      */
+      const MAX_MERCHANT = 25;
+      const MAX_CITY = 15;
+      const MAX_POSTAL = 10;
+      const MAX_AMOUNT = 10000000;
+      /*
+      |--------------------------------------------------------------------------
+      | STATE
+      |--------------------------------------------------------------------------
+      */
+      let originalPayload = "";
+      let generatedPayload = "";
+      let generatedQrUrl = "";
+      /*
+      |--------------------------------------------------------------------------
+      | FORMAT RUPIAH
+      |--------------------------------------------------------------------------
+      */
+      function formatRupiah(value) {
+        const number = Number(value) || 0;
+        return new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          maximumFractionDigits: 0
+        }).format(number);
+      }
+      /*
+      |--------------------------------------------------------------------------
+      | STATUS
+      |--------------------------------------------------------------------------
+      */
+      function showStatus(element, message, type = "success") {
+        element.textContent = message;
+        element.className = "status show " + type;
+      }
+
+      function hideStatus(element) {
+        element.className = "status";
+      }
+      /*
+      |--------------------------------------------------------------------------
+      | COUNTERS
+      |--------------------------------------------------------------------------
+      */
+      function updateCounters() {
+        document.getElementById("payloadCounter").textContent = qrisPayload.value.length + " karakter";
+        document.getElementById("merchantCounter").textContent = merchantName.value.length + " / " + MAX_MERCHANT;
+        document.getElementById("cityCounter").textContent = cityName.value.length + " / " + MAX_CITY;
+        document.getElementById("postalCounter").textContent = postalCode.value.length + " / " + MAX_POSTAL;
+      }
+      qrisPayload.addEventListener("input", updateCounters);
+      merchantName.addEventListener("input", updateCounters);
+      cityName.addEventListener("input", updateCounters);
+      postalCode.addEventListener("input", () => {
+        postalCode.value = postalCode.value.replace(/\D/g, "");
+        updateCounters();
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | LIMIT INPUT
+      |--------------------------------------------------------------------------
+      */
+      merchantName.addEventListener("input", function() {
+        if (this.value.length > MAX_MERCHANT) {
+          this.value = this.value.substring(0, MAX_MERCHANT);
+        }
+        updateCounters();
+      });
+      cityName.addEventListener("input", function() {
+        if (this.value.length > MAX_CITY) {
+          this.value = this.value.substring(0, MAX_CITY);
+        }
+        updateCounters();
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | AMOUNT VALIDATION
+      |--------------------------------------------------------------------------
+      */
+      amount.addEventListener("input", function() {
+        let value = Number(this.value);
+        if (value > MAX_AMOUNT) {
+          this.value = MAX_AMOUNT;
+        }
+        if (value < 0) {
+          this.value = 0;
+        }
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | FEE SELECT
+      |--------------------------------------------------------------------------
+      */
+      feeType.addEventListener("change", function() {
+        if (this.value === "none") {
+          feeValue.value = "";
+          feeValue.disabled = true;
+        } else {
+          feeValue.disabled = false;
+          feeValue.placeholder = this.value === "percent" ? "Contoh: 1.5" : "Contoh: 2500";
+        }
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | FILE UPLOAD
+      |--------------------------------------------------------------------------
+      */
+      qrUpload.addEventListener("click", function() {
+        qrFile.click();
+      });
+      qrFile.addEventListener("change", function() {
+        const file = this.files[0];
+        if (file) {
+          decodeQRImage(file);
+        }
+      });
+      qrUpload.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        qrUpload.classList.add("dragover");
+      });
+      qrUpload.addEventListener("dragleave", function() {
+        qrUpload.classList.remove("dragover");
+      });
+      qrUpload.addEventListener("drop", function(event) {
+        event.preventDefault();
+        qrUpload.classList.remove("dragover");
+        const file = event.dataTransfer.files[0];
+        if (file) {
+          decodeQRImage(file);
+        }
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | QR DECODER
+      |--------------------------------------------------------------------------
+      |
+      | PENTING:
+      |
+      | File tidak pernah dikirim menggunakan fetch().
+      |
+      | Alurnya:
+      |
+      | File -> Browser -> Canvas -> jsQR
+      |
+      |--------------------------------------------------------------------------
+      */
+      async function decodeQRImage(file) {
+        hideStatus(decodeStatus);
+        if (!file.type.startsWith("image/")) {
+          showStatus(decodeStatus, "File harus berupa gambar.", "error");
+          return;
+        }
+        const maxFileSize = 10 * 1024 * 1024;
+        if (file.size > maxFileSize) {
+          showStatus(decodeStatus, "Ukuran foto maksimal 10 MB.", "error");
+          return;
+        }
+        /*
+         * Pastikan library tersedia.
+         */
+        if (typeof jsQR === "undefined") {
+          showStatus(decodeStatus, "Library QR decoder belum tersedia. Pastikan jsQR.min.js sudah ada.", "error");
+          return;
+        }
+        qrUpload.classList.add("processing");
+        showStatus(decodeStatus, "Membaca QRIS dari foto...", "success");
+        try {
+          const bitmap = await createImageBitmap(file);
+          const maxDimension = 2000;
+          let width = bitmap.width;
+          let height = bitmap.height;
+          if (width > maxDimension || height > maxDimension) {
+            const ratio = Math.min(maxDimension / width, maxDimension / height);
+            width = Math.floor(width * ratio);
+            height = Math.floor(height * ratio);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext("2d", {
+            willReadFrequently: true
+          });
+          context.drawImage(bitmap, 0, 0, width, height);
+          const imageData = context.getImageData(0, 0, width, height);
+          /*
+           * Decode lokal.
+           */
+          const result = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "attemptBoth"
+          });
+          bitmap.close();
+          if (!result) {
+            throw new Error("QR Code tidak ditemukan. Pastikan foto QRIS jelas, tidak terlalu buram, dan seluruh QR terlihat.");
+          }
+          const payload = result.data.trim();
+          if (!payload) {
+            throw new Error("QR Code ditemukan tetapi payload kosong.");
+          }
+          /*
+           * Isi textarea.
+           */
+          qrisPayload.value = payload;
+          updateCounters();
+          showStatus(decodeStatus, "QRIS berhasil dibaca.", "success");
+          /*
+           * Langsung load QRIS.
+           */
+          await loadQRIS();
+        } catch (error) {
+          showStatus(decodeStatus, error.message || "Gagal membaca QRIS.", "error");
+        } finally {
+          qrUpload.classList.remove("processing");
+          qrFile.value = "";
+        }
+      }
+      /*
+      |--------------------------------------------------------------------------
+      | LOAD QRIS VIA AJAX
+      |--------------------------------------------------------------------------
+      */
+      loadQrisButton.addEventListener("click", loadQRIS);
+      async function loadQRIS() {
+        hideStatus(loadStatus);
+        const payload = qrisPayload.value.trim();
+        if (!payload) {
+          showStatus(loadStatus, "Masukkan atau scan QRIS terlebih dahulu.", "error");
+          return false;
+        }
+        /*
+         * Basic QRIS validation.
+         */
+        if (payload.length < 20) {
+          showStatus(loadStatus, "Payload QRIS terlalu pendek atau tidak valid.", "error");
+          return false;
+        }
+        setButtonLoading(loadQrisButton, true, "Memuat QRIS...");
+        try {
+          /*
+           * AJAX.
+           *
+           * Yang dikirim hanya TEXT payload.
+           *
+           * Tidak ada file/foto.
+           */
+          const response = await fetch("api.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              qris_payload: payload,
+              /*
+               * Amount kosong
+               * saat load pertama.
+               *
+               * Tujuannya agar
+               * kita membaca QRIS
+               * original terlebih dahulu.
+               */
+              merchant_name: "",
+              city_name: "",
+              postal_code: "",
+              amount: 0,
+              fee_type: "none",
+              fee_value: 0
+            })
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || "QRIS tidak dapat diproses.");
+          }
+          const original = result.data.original;
+          originalPayload = payload;
+          /*
+           * Isi data merchant dari QRIS.
+           */
+          merchantName.value = original.merchant_name || "";
+          cityName.value = original.city_name || "";
+          postalCode.value = original.postal_code || "";
+          updateCounters();
+          /*
+           * Tampilkan setting.
+           */
+          settingsCard.style.display = "block";
+          settingsCard.classList.add("settings-visible");
+          /*
+           * Tampilkan info original.
+           */
+          document.getElementById("originalInfo").style.display = "block";
+          document.getElementById("originalPayload").textContent = payload;
+          /*
+           * Reset preview hasil.
+           */
+          merchantSummary.style.display = "none";
+          resultActions.style.display = "none";
+          qrImage.style.display = "none";
+          qrPlaceholder.style.display = "block";
+          showStatus(loadStatus, "QRIS berhasil dibaca. Silakan atur data merchant dan nominal.", "success");
+          /*
+           * Scroll ke settings.
+           */
+          setTimeout(function() {
+            settingsCard.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+          }, 150);
+          return true;
+        } catch (error) {
+          showStatus(loadStatus, error.message || "Terjadi kesalahan saat memuat QRIS.", "error");
+          return false;
+        } finally {
+          setButtonLoading(loadQrisButton, false, "Load QRIS");
+        }
+      }
+      /*
+      |--------------------------------------------------------------------------
+      | GENERATE
+      |--------------------------------------------------------------------------
+      */
+      generateButton.addEventListener("click", generateQRIS);
+      async function generateQRIS() {
+        hideStatus(generateStatus);
+        if (!originalPayload) {
+          showStatus(generateStatus, "Load QRIS original terlebih dahulu.", "error");
+          return;
+        }
+        /*
+         * Merchant.
+         */
+        const merchant = merchantName.value.trim();
+        const city = cityName.value.trim();
+        const postal = postalCode.value.trim();
+        /*
+         * Amount OPSIONAL.
+         */
+        const amountText = amount.value.trim();
+        let amountValue = 0;
+        if (amountText !== "") {
+          amountValue = Number(amountText);
+          if (!Number.isFinite(amountValue)) {
+            showStatus(generateStatus, "Nominal pembayaran tidak valid.", "error");
+            return;
+          }
+          if (amountValue < 0) {
+            showStatus(generateStatus, "Nominal pembayaran tidak boleh negatif.", "error");
+            return;
+          }
+          if (amountValue > MAX_AMOUNT) {
+            showStatus(generateStatus, "Nominal pembayaran maksimal Rp10.000.000.", "error");
+            return;
+          }
+        }
+        /*
+         * Merchant validation.
+         */
+        if (merchant.length > MAX_MERCHANT) {
+          showStatus(generateStatus, "Merchant Name maksimal 25 karakter.", "error");
+          return;
+        }
+        if (city.length > MAX_CITY) {
+          showStatus(generateStatus, "City Name maksimal 15 karakter.", "error");
+          return;
+        }
+        if (postal !== "" && !/^[0-9]{1,10}$/.test(postal)) {
+          showStatus(generateStatus, "Postal Code hanya boleh angka, maksimal 10 digit.", "error");
+          return;
+        }
+        /*
+         * Fee validation.
+         */
+        const selectedFeeType = feeType.value;
+        let selectedFeeValue = 0;
+        if (selectedFeeType !== "none") {
+          selectedFeeValue = Number(feeValue.value);
+          if (!Number.isFinite(selectedFeeValue) || selectedFeeValue < 0) {
+            showStatus(generateStatus, "Nilai biaya layanan tidak valid.", "error");
+            return;
+          }
+          if (selectedFeeType === "percent" && selectedFeeValue > 100) {
+            showStatus(generateStatus, "Persentase biaya maksimal 100%.", "error");
+            return;
+          }
+        }
+        setButtonLoading(generateButton, true, "Generating...");
+        try {
+          const response = await fetch("api.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              qris_payload: originalPayload,
+              merchant_name: merchant,
+              city_name: city,
+              postal_code: postal,
+              /*
+               * Jika kosong:
+               * amount = 0
+               *
+               * API akan menghapus
+               * tag 54.
+               */
+              amount: amountValue,
+              fee_type: selectedFeeType,
+              fee_value: selectedFeeValue
+            })
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || "Gagal membuat QRIS.");
+          }
+          const modified = result.data.modified;
+          generatedPayload = modified.payload;
+          generatedQrUrl = result.data.qr_code_url;
+          /*
+           * Preview QR.
+           */
+          qrImage.src = generatedQrUrl;
+          qrImage.style.display = "block";
+          qrPlaceholder.style.display = "none";
+          /*
+           * Summary.
+           */
+          document.getElementById("summaryMerchant").textContent = modified.merchant_name || "-";
+          document.getElementById("summaryCity").textContent = modified.city_name || "-";
+          document.getElementById("summaryPostal").textContent = modified.postal_code || "-";
+          /*
+           * Jika amount 0:
+           * tampilkan "Tidak ditentukan".
+           */
+          if (Number(modified.base_amount) > 0) {
+            document.getElementById("summaryAmount").textContent = formatRupiah(modified.base_amount);
+          } else {
+            document.getElementById("summaryAmount").textContent = "Tidak ditentukan";
+          }
+          document.getElementById("summaryFee").textContent = formatRupiah(modified.service_fee);
+          if (Number(modified.total_amount) > 0) {
+            document.getElementById("summaryTotal").textContent = formatRupiah(modified.total_amount);
+          } else {
+            document.getElementById("summaryTotal").textContent = "Sesuai nominal pembayaran";
+          }
+          merchantSummary.style.display = "block";
+          resultActions.style.display = "flex";
+          showStatus(generateStatus, "QRIS berhasil dibuat.", "success");
+          /*
+           * Scroll ke preview
+           * di mobile.
+           */
+          if (window.innerWidth < 850) {
+            document.querySelector(".preview-card").scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+          }
+        } catch (error) {
+          showStatus(generateStatus, error.message || "Terjadi kesalahan saat generate QRIS.", "error");
+        } finally {
+          setButtonLoading(generateButton, false, "Generate QRIS");
+        }
+      }
+      /*
+      |--------------------------------------------------------------------------
+      | BUTTON LOADING
+      |--------------------------------------------------------------------------
+      */
+      function setButtonLoading(button, loading, text) {
+        const original = button === loadQrisButton ? document.getElementById("loadButtonText") : document.getElementById("generateButtonText");
+        if (loading) {
+          button.disabled = true;
+          original.innerHTML = '' +
+          text;
+        } else {
+          button.disabled = false;
+          original.textContent = text;
+        }
+      }
+      /*
+      |--------------------------------------------------------------------------
+      | COPY PAYLOAD
+      |--------------------------------------------------------------------------
+      */
+      document.getElementById("copyButton").addEventListener("click", async function() {
+        if (!generatedPayload) {
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(generatedPayload);
+          const oldText = this.textContent;
+          this.textContent = "Copied ✓";
+          setTimeout(
+            () => {
+              this.textContent = oldText;
+            }, 1500);
+        } catch (error) {
+          /*
+           * Fallback.
+           */
+          const textarea = document.createElement("textarea");
+          textarea.value = generatedPayload;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          textarea.remove();
+          this.textContent = "Copied ✓";
+          setTimeout(
+            () => {
+              this.textContent = "Copy";
+            }, 1500);
+        }
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | DOWNLOAD QR
+      |--------------------------------------------------------------------------
+      */
+      document.getElementById("downloadButton").addEventListener("click", async function() {
+        if (!generatedPayload) {
+          return;
+        }
+        /*
+         * Kita download dari URL QR yang
+         * diberikan API.
+         */
+        try {
+          const response = await fetch(generatedQrUrl);
+          if (!response.ok) {
+            throw new Error("QR tidak dapat di-download.");
+          }
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "qris-dynamic.png";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          /*
+           * Fallback:
+           * buka QR di tab baru.
+           */
+          window.open(generatedQrUrl, "_blank");
+        }
+      });
+      /*
+      |--------------------------------------------------------------------------
+      | INITIALIZE
+      |--------------------------------------------------------------------------
+      */
+      updateCounters();
+    </script>
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"02188e0d30ca40b88abcfe558ba99199","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>
